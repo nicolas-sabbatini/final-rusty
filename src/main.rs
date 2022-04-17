@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PresentMode};
 use player_plugin::PlayerPlugin;
 
 #[cfg(debug_assertions)]
@@ -27,7 +27,7 @@ fn main() {
             width: WIN_WIDTH * WIN_SCALE,
             height: WIN_HEIGHT * WIN_SCALE,
             resizable: true,
-            vsync: true,
+            present_mode: PresentMode::Fifo,
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.5)));
