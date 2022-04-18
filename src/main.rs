@@ -1,9 +1,10 @@
 use bevy::{prelude::*, window::PresentMode};
 use player_plugin::PlayerPlugin;
+use tilemap_plugin::TilemapPlugin;
 
+// Load and use this module on debug
 #[cfg(debug_assertions)]
 use debug_plugin::DebugPlugin;
-use tilemap_plugin::TilemapPlugin;
 #[cfg(debug_assertions)]
 mod debug_plugin;
 
@@ -17,6 +18,13 @@ const WIN_WIDTH: f32 = 200.0;
 const WIN_HEIGHT: f32 = 150.0;
 const WIN_SCALE: f32 = 4.0;
 const TILE_SIZE: f32 = 8.0;
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+enum AppState {
+    MainMenu,
+    OverWorld,
+    Combat,
+}
 
 fn main() {
     let mut app = App::new();
@@ -36,12 +44,16 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(TilemapPlugin);
 
+    // Add this plugins and system on debug
     #[cfg(debug_assertions)]
-    app.add_plugin(DebugPlugin);
+    app.add_plugin(DebugPlugin)
+        .add_system(bevy::input::system::exit_on_esc_system);
 
     app.add_startup_system_to_stage(StartupStage::PreStartup, load_assets);
 
     app.add_startup_system(setup_camera);
+
+    app.add_state(AppState::OverWorld);
 
     app.run();
 }

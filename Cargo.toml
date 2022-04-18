@@ -6,6 +6,10 @@ edition = "2021"
 [dependencies]
 bevy = "0.7"
 bevy-inspector-egui = "0.10"
+rand = "0.8"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
 
 [profile.dev]
 opt-level = 1

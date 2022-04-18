@@ -1,6 +1,6 @@
 use crate::{
     common_component::{Collider, Speed},
-    SpriteSheet, TILE_SIZE,
+    AppState, SpriteSheet, TILE_SIZE,
 };
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_inspector_egui::Inspectable;
@@ -21,9 +21,12 @@ struct PlayerBundle {
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_player);
-
-        app.add_system(move_player).add_system(camera_follow);
+        app.add_system_set(SystemSet::on_enter(AppState::OverWorld).with_system(spawn_player))
+            .add_system_set(
+                SystemSet::on_update(AppState::OverWorld)
+                    .with_system(move_player)
+                    .with_system(camera_follow),
+            );
     }
 }
 
