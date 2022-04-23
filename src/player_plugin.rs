@@ -2,7 +2,7 @@ use crate::{
     common_component::{Collider, Speed},
     AppState, SpriteSheet, TILE_SIZE,
 };
-use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy::{prelude::*, render::camera::Camera2d, sprite::collide_aabb::collide};
 use bevy_inspector_egui::Inspectable;
 
 // Plugin struct definitions
@@ -25,15 +25,12 @@ impl Plugin for PlayerPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::OverWorld)
                     .with_system(move_player)
-                    .with_system(camera_follow),
+                    .with_system(camera_follow.after(move_player)),
             );
     }
 }
 
 fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
-    //    let mut sprite = ;
-    //    sprite.custom_size = Some(Vec2::new(50.0, 50.0));
-
     commands.spawn_bundle(PlayerBundle {
         tag: Player,
         name: Name::new("Player"),
@@ -105,7 +102,7 @@ fn check_colition(
 
 fn camera_follow(
     player_query: Query<&Transform, With<Player>>,
-    mut camera_query: Query<&mut Transform, (With<Camera>, Without<Player>)>,
+    mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
 ) {
     let player_transform = player_query
         .get_single()

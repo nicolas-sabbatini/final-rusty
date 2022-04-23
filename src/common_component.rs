@@ -5,3 +5,6 @@ pub struct Speed(pub f32);
 
 #[derive(Debug, Component)]
 pub struct Collider;
+
+#[derive(Debug, Component)]
+pub struct CombatSpawn;
