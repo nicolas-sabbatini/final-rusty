@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    common_component::{Collider, CombatSpawn},
+    common_component::{Collider, EncounterSpawn},
     AppState, SpriteSheet, TILE_SIZE,
 };
 
@@ -40,7 +40,7 @@ fn creat_simple_map(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
             commands.entity(tile).insert(Collider);
         }
         if spawn {
-            commands.entity(tile).insert(CombatSpawn);
+            commands.entity(tile).insert(EncounterSpawn);
         }
         tile
     };

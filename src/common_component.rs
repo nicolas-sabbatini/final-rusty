@@ -7,4 +7,4 @@ pub struct Speed(pub f32);
 pub struct Collider;
 
 #[derive(Debug, Component)]
-pub struct CombatSpawn;
+pub struct EncounterSpawn;

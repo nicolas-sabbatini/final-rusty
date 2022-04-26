@@ -1,19 +1,46 @@
 use crate::{
-    common_component::{Collider, Speed},
+    common_component::{Collider, EncounterSpawn, Speed},
     AppState, SpriteSheet, TILE_SIZE,
 };
 use bevy::{prelude::*, render::camera::Camera2d, sprite::collide_aabb::collide};
 use bevy_inspector_egui::Inspectable;
+use rand::Rng;
 
 // Plugin struct definitions
 #[derive(Debug, Component, Inspectable)]
 pub struct Player;
+
+#[derive(Debug, Component, Inspectable)]
+pub struct CombatTimer {
+    remaining: f32,
+    max_range: f32,
+    min_range: f32,
+}
+impl CombatTimer {
+    fn new(min_range: f32, max_range: f32) -> Self {
+        Self {
+            max_range,
+            min_range,
+            remaining: rand::thread_rng().gen_range(min_range..max_range),
+        }
+    }
+
+    fn tick(&mut self, tick: f32) -> bool {
+        self.remaining -= tick;
+        self.remaining < 0.0
+    }
+
+    fn reset(&mut self) {
+        self.remaining = rand::thread_rng().gen_range(self.min_range..self.max_range);
+    }
+}
 
 #[derive(Bundle)]
 struct PlayerBundle {
     name: Name,
     tag: Player,
     speed: Speed,
+    until_combat: CombatTimer,
     #[bundle]
     sprite: SpriteSheetBundle,
 }
@@ -26,7 +53,9 @@ impl Plugin for PlayerPlugin {
                 SystemSet::on_update(AppState::OverWorld)
                     .with_system(move_player)
                     .with_system(camera_follow.after(move_player)),
-            );
+            )
+            .add_system_set(SystemSet::on_pause(AppState::OverWorld).with_system(hide_player))
+            .add_system_set(SystemSet::on_resume(AppState::OverWorld).with_system(show_player));
     }
 }
 
@@ -35,6 +64,7 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         tag: Player,
         name: Name::new("Player"),
         speed: Speed(32.0),
+        until_combat: CombatTimer::new(10.0, 20.0),
         sprite: SpriteSheetBundle {
             sprite: TextureAtlasSprite::new(1),
             texture_atlas: sprite_sheet.0.clone(),
@@ -46,7 +76,9 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
 
 fn move_player(
     mut player_query: Query<(&mut Transform, &Speed), With<Player>>,
+    mut encounter_query: Query<&mut CombatTimer, With<Player>>,
     collition_query: Query<&Transform, (With<Collider>, Without<Player>)>,
+    encounter_collition_query: Query<&Transform, (With<EncounterSpawn>, Without<Player>)>,
     keyboard: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -74,30 +106,37 @@ fn move_player(
     let mut vel_y = vel;
     vel_y.x = 0.0;
 
-    if check_colition(player_transform.translation + vel_x, &collition_query) {
+    if !collition_query
+        .iter()
+        .any(|w| check_colition(player_transform.translation + vel_x, w.translation))
+    {
         player_transform.translation += vel_x;
     }
-    if check_colition(player_transform.translation + vel_y, &collition_query) {
+    if !collition_query
+        .iter()
+        .any(|w| check_colition(player_transform.translation + vel_y, w.translation))
+    {
         player_transform.translation += vel_y;
+    }
+    if !encounter_collition_query
+        .iter()
+        .any(|w| check_colition(player_transform.translation, w.translation))
+    {
+        let mut encounter_timer = encounter_query
+            .get_single_mut()
+            .expect("No encounter timer found 'PlayerPlugin (move_player 127)'");
+        encounter_timer.tick(vel.x.abs() + vel.y.abs());
     }
 }
 
-fn check_colition(
-    player_position: Vec3,
-    collition_query: &Query<&Transform, (With<Collider>, Without<Player>)>,
-) -> bool {
-    for collider_position in collition_query.iter() {
-        let collition = collide(
-            player_position,
-            Vec2::splat(TILE_SIZE * 0.7),
-            collider_position.translation,
-            Vec2::splat(TILE_SIZE),
-        );
-        if collition.is_some() {
-            return false;
-        }
-    }
-    true
+fn check_colition(player_position: Vec3, collition_target: Vec3) -> bool {
+    let collition = collide(
+        player_position,
+        Vec2::splat(TILE_SIZE * 0.6),
+        collition_target,
+        Vec2::splat(TILE_SIZE),
+    );
+    collition.is_some()
 }
 
 fn camera_follow(
@@ -111,4 +150,38 @@ fn camera_follow(
         .get_single_mut()
         .expect("No camera found 'PlayerPlugin (camera_follow 108)'");
     camera_transform.translation = player_transform.translation;
+}
+
+fn hide_player(
+    mut player_query: Query<&mut Visibility, With<Player>>,
+    children_query: Query<&Children, With<Player>>,
+    mut child_visibility_query: Query<&mut Visibility, Without<Player>>,
+) {
+    let mut player_vis = player_query.single_mut();
+    player_vis.is_visible = false;
+
+    for children in children_query.iter() {
+        for child in children.iter() {
+            if let Ok(mut child_vis) = child_visibility_query.get_mut(*child) {
+                child_vis.is_visible = false;
+            }
+        }
+    }
+}
+
+fn show_player(
+    mut player_query: Query<&mut Visibility, With<Player>>,
+    children_query: Query<&Children, With<Player>>,
+    mut child_visibility_query: Query<&mut Visibility, Without<Player>>,
+) {
+    let mut player_vis = player_query.single_mut();
+    player_vis.is_visible = true;
+
+    for children in children_query.iter() {
+        for child in children.iter() {
+            if let Ok(mut child_vis) = child_visibility_query.get_mut(*child) {
+                child_vis.is_visible = true;
+            }
+        }
+    }
 }
