@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::camera::Camera2d};
+use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use rand::Rng;
 

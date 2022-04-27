@@ -25,7 +25,7 @@ const TILE_SIZE: f32 = 8.0;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 enum AppState {
-    MainMenu,
+    // MainMenu,
     OverWorld,
     Combat,
 }
