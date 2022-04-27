@@ -25,8 +25,11 @@ impl CombatTimer {
         }
     }
 
-    fn tick(&mut self, tick: f32) -> bool {
+    fn tick(&mut self, tick: f32) {
         self.remaining -= tick;
+    }
+
+    fn is_done(&self) -> bool {
         self.remaining < 0.0
     }
 
@@ -52,7 +55,8 @@ impl Plugin for PlayerPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::OverWorld)
                     .with_system(move_player)
-                    .with_system(camera_follow.after(move_player)),
+                    .with_system(camera_follow.after(move_player))
+                    .with_system(check_encunter.after(move_player)),
             )
             .add_system_set(SystemSet::on_pause(AppState::OverWorld).with_system(hide_player))
             .add_system_set(SystemSet::on_resume(AppState::OverWorld).with_system(show_player));
@@ -64,7 +68,7 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         tag: Player,
         name: Name::new("Player"),
         speed: Speed(32.0),
-        until_combat: CombatTimer::new(10.0, 20.0),
+        until_combat: CombatTimer::new(7.0, 30.0),
         sprite: SpriteSheetBundle {
             sprite: TextureAtlasSprite::new(1),
             texture_atlas: sprite_sheet.0.clone(),
@@ -106,21 +110,24 @@ fn move_player(
     let mut vel_y = vel;
     vel_y.x = 0.0;
 
-    if !collition_query
-        .iter()
-        .any(|w| check_colition(player_transform.translation + vel_x, w.translation))
+    if !collition_query.is_empty()
+        && !collition_query
+            .iter()
+            .any(|w| check_colition(player_transform.translation + vel_x, w.translation))
     {
         player_transform.translation += vel_x;
     }
-    if !collition_query
-        .iter()
-        .any(|w| check_colition(player_transform.translation + vel_y, w.translation))
+    if !collition_query.is_empty()
+        && !collition_query
+            .iter()
+            .any(|w| check_colition(player_transform.translation + vel_y, w.translation))
     {
         player_transform.translation += vel_y;
     }
-    if !encounter_collition_query
-        .iter()
-        .any(|w| check_colition(player_transform.translation, w.translation))
+    if !encounter_collition_query.is_empty()
+        && encounter_collition_query
+            .iter()
+            .any(|w| check_colition(player_transform.translation, w.translation))
     {
         let mut encounter_timer = encounter_query
             .get_single_mut()
@@ -149,7 +156,24 @@ fn camera_follow(
     let mut camera_transform = camera_query
         .get_single_mut()
         .expect("No camera found 'PlayerPlugin (camera_follow 108)'");
-    camera_transform.translation = player_transform.translation;
+    camera_transform.translation.x = player_transform.translation.x;
+    camera_transform.translation.y = player_transform.translation.y;
+}
+
+/// Look for trouble
+fn check_encunter(
+    mut encounter_query: Query<&mut CombatTimer, With<Player>>,
+    mut state: ResMut<State<AppState>>,
+) {
+    let mut encounter_timer = encounter_query
+        .get_single_mut()
+        .expect("No encounter timer found 'Player plugin' 163");
+    if encounter_timer.is_done() {
+        encounter_timer.reset();
+        state
+            .push(AppState::Combat)
+            .expect("Error pushing state to App::Combat 'Player plugin' 170");
+    }
 }
 
 fn hide_player(

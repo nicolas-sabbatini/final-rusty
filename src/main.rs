@@ -1,4 +1,6 @@
 use bevy::{prelude::*, window::PresentMode};
+use camera_plugin::CameraPlugin;
+use combat_plugin::CombatPlugin;
 use player_plugin::PlayerPlugin;
 use tilemap_plugin::TilemapPlugin;
 
@@ -8,6 +10,8 @@ use debug_plugin::DebugPlugin;
 #[cfg(debug_assertions)]
 mod debug_plugin;
 
+mod camera_plugin;
+mod combat_plugin;
 mod common_component;
 mod player_plugin;
 mod tilemap_plugin;
@@ -38,11 +42,13 @@ fn main() {
             present_mode: PresentMode::Fifo,
             ..Default::default()
         })
-        .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.5)));
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
 
     app.add_plugins(DefaultPlugins)
         .add_plugin(PlayerPlugin)
-        .add_plugin(TilemapPlugin);
+        .add_plugin(TilemapPlugin)
+        .add_plugin(CombatPlugin)
+        .add_plugin(CameraPlugin);
 
     // Add this plugins and system on debug
     #[cfg(debug_assertions)]
@@ -51,20 +57,9 @@ fn main() {
 
     app.add_startup_system_to_stage(StartupStage::PreStartup, load_assets);
 
-    app.add_startup_system(setup_camera);
-
     app.add_state(AppState::OverWorld);
 
     app.run();
-}
-
-fn setup_camera(mut commands: Commands, win_res: Res<Windows>) {
-    let win = win_res.get_primary().unwrap();
-    let mut new_camera = OrthographicCameraBundle::new_2d();
-    new_camera.orthographic_projection.scaling_mode =
-        bevy::render::camera::ScalingMode::FixedVertical;
-    new_camera.orthographic_projection.scale = win.height() / (WIN_SCALE * 2.0);
-    commands.spawn_bundle(new_camera);
 }
 
 fn load_assets(
@@ -74,7 +69,7 @@ fn load_assets(
 ) {
     let img = assets.load("spritesheet.png");
     let atlas =
-        TextureAtlas::from_grid_with_padding(img, Vec2::splat(TILE_SIZE), 11, 1, Vec2::splat(1.0));
+        TextureAtlas::from_grid_with_padding(img, Vec2::splat(TILE_SIZE), 11, 2, Vec2::splat(1.0));
 
     let atlas_handle = texture_atlases.add(atlas);
 

@@ -5,9 +5,14 @@ use crate::{
     AppState, SpriteSheet, TILE_SIZE,
 };
 
+// Plugin struct definitions
+#[derive(Debug, Component)]
+pub struct Map;
+
 #[derive(Bundle)]
 struct MapBundle {
     name: Name,
+    tag: Map,
     transform: Transform,
     g_transform: GlobalTransform,
 }
@@ -15,7 +20,9 @@ struct MapBundle {
 pub struct TilemapPlugin;
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::OverWorld).with_system(creat_simple_map));
+        app.add_system_set(SystemSet::on_enter(AppState::OverWorld).with_system(creat_simple_map))
+            .add_system_set(SystemSet::on_pause(AppState::OverWorld).with_system(hide_map))
+            .add_system_set(SystemSet::on_resume(AppState::OverWorld).with_system(show_map));
     }
 }
 
@@ -53,7 +60,7 @@ fn creat_simple_map(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
                 '%' => spawn_tile(8, x, y, true, false),
                 'g' => spawn_tile(7, x, y, false, false),
                 ',' => spawn_tile(9, x, y, false, false),
-                '~' => spawn_tile(10, x, y, false, false),
+                '~' => spawn_tile(10, x, y, false, true),
                 _ => spawn_tile(3, x, y, false, false),
             };
             tiles.push(tile);
@@ -62,8 +69,35 @@ fn creat_simple_map(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
     commands
         .spawn_bundle(MapBundle {
             name: Name::new("map.txt"),
+            tag: Map,
             transform: Transform::default(),
             g_transform: GlobalTransform::default(),
         })
         .push_children(&tiles);
+}
+
+fn hide_map(
+    children_query: Query<&Children, With<Map>>,
+    mut child_visibility_query: Query<&mut Visibility, Without<Map>>,
+) {
+    for children in children_query.iter() {
+        for child in children.iter() {
+            if let Ok(mut child_vis) = child_visibility_query.get_mut(*child) {
+                child_vis.is_visible = false;
+            }
+        }
+    }
+}
+
+fn show_map(
+    children_query: Query<&Children, With<Map>>,
+    mut child_visibility_query: Query<&mut Visibility, Without<Map>>,
+) {
+    for children in children_query.iter() {
+        for child in children.iter() {
+            if let Ok(mut child_vis) = child_visibility_query.get_mut(*child) {
+                child_vis.is_visible = true;
+            }
+        }
+    }
 }
