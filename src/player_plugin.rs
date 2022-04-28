@@ -70,7 +70,7 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         speed: Speed(32.0),
         until_combat: CombatTimer::new(7.0, 30.0),
         sprite: SpriteSheetBundle {
-            sprite: TextureAtlasSprite::new(1),
+            sprite: TextureAtlasSprite::new(8),
             texture_atlas: sprite_sheet.0.clone(),
             transform: Transform::from_xyz(0.0, 0.0, 10.0),
             ..Default::default()

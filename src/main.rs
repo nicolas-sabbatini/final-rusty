@@ -69,7 +69,7 @@ fn load_assets(
 ) {
     let img = assets.load("spritesheet.png");
     let atlas =
-        TextureAtlas::from_grid_with_padding(img, Vec2::splat(TILE_SIZE), 11, 2, Vec2::splat(1.0));
+        TextureAtlas::from_grid_with_padding(img, Vec2::splat(TILE_SIZE), 8, 3, Vec2::splat(1.0));
 
     let atlas_handle = texture_atlases.add(atlas);
 

@@ -56,12 +56,12 @@ fn creat_simple_map(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
     for (y, line) in map.lines().enumerate() {
         for (x, ch) in line.chars().enumerate() {
             let tile = match ch {
-                '#' => spawn_tile(6, x, y, true, false),
-                '%' => spawn_tile(8, x, y, true, false),
-                'g' => spawn_tile(7, x, y, false, false),
-                ',' => spawn_tile(9, x, y, false, false),
-                '~' => spawn_tile(10, x, y, false, true),
-                _ => spawn_tile(3, x, y, false, false),
+                'o' => spawn_tile(3, x, y, true, false),
+                '#' => spawn_tile(5, x, y, true, false),
+                'g' => spawn_tile(4, x, y, false, false),
+                ',' => spawn_tile(6, x, y, false, false),
+                '~' => spawn_tile(7, x, y, false, true),
+                _ => spawn_tile(0, x, y, false, false),
             };
             tiles.push(tile);
         }

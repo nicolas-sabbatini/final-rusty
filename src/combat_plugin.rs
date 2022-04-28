@@ -28,7 +28,7 @@ impl Plugin for CombatPlugin {
 
 fn spawn_enemy(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
     // TODO change to a file
-    let enemy_type = [("Rat", 11), ("Snake", 12), ("Wolf", 13)];
+    let enemy_type = [("Rat", 16), ("Snake", 17), ("Wolf", 18)];
 
     let selected_enemy = rand::thread_rng().gen_range(0..enemy_type.len());
     commands.spawn_bundle(EnemyBundle {
