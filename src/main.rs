@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::PresentMode};
 use camera_plugin::CameraPlugin;
 use combat_plugin::CombatPlugin;
+use fadeout_plugin::FadeoutPlugin;
 use player_plugin::PlayerPlugin;
 use tilemap_plugin::TilemapPlugin;
 
@@ -13,6 +14,7 @@ mod debug_plugin;
 mod camera_plugin;
 mod combat_plugin;
 mod common_component;
+mod fadeout_plugin;
 mod player_plugin;
 mod tilemap_plugin;
 
@@ -24,7 +26,7 @@ const WIN_SCALE: f32 = 4.0;
 const TILE_SIZE: f32 = 8.0;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-enum AppState {
+pub enum AppState {
     // MainMenu,
     OverWorld,
     Combat,
@@ -48,7 +50,8 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(TilemapPlugin)
         .add_plugin(CombatPlugin)
-        .add_plugin(CameraPlugin);
+        .add_plugin(CameraPlugin)
+        .add_plugin(FadeoutPlugin);
 
     // Add this plugins and system on debug
     #[cfg(debug_assertions)]
