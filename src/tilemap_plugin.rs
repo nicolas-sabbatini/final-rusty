@@ -21,7 +21,9 @@ pub struct TilemapPlugin;
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::OverWorld).with_system(creat_simple_map))
-            .add_system_set(SystemSet::on_pause(AppState::OverWorld).with_system(hide_map))
+            // On combat hide the map
+            .add_system_set(SystemSet::on_enter(AppState::Combat).with_system(hide_map))
+            // Always that the Overworld start show the map
             .add_system_set(SystemSet::on_resume(AppState::OverWorld).with_system(show_map));
     }
 }

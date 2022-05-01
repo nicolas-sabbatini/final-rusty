@@ -25,9 +25,10 @@ const WIN_HEIGHT: f32 = 150.0;
 const WIN_SCALE: f32 = 4.0;
 const TILE_SIZE: f32 = 8.0;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AppState {
     // MainMenu,
+    Fadeout,
     OverWorld,
     Combat,
 }

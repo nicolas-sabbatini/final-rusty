@@ -1,5 +1,6 @@
 use crate::{
     common_component::{Collider, EncounterSpawn, Speed},
+    fadeout_plugin::FadeoutConfigResource,
     AppState, SpriteSheet, TILE_SIZE,
 };
 use bevy::{prelude::*, render::camera::Camera2d, sprite::collide_aabb::collide};
@@ -58,7 +59,9 @@ impl Plugin for PlayerPlugin {
                     .with_system(camera_follow.after(move_player))
                     .with_system(check_encunter.after(move_player)),
             )
-            .add_system_set(SystemSet::on_pause(AppState::OverWorld).with_system(hide_player))
+            // On combat enter
+            .add_system_set(SystemSet::on_enter(AppState::Combat).with_system(hide_player))
+            // Always that the Overworld start show the player
             .add_system_set(SystemSet::on_resume(AppState::OverWorld).with_system(show_player));
     }
 }
@@ -162,17 +165,23 @@ fn camera_follow(
 
 /// Look for trouble
 fn check_encunter(
-    mut encounter_query: Query<&mut CombatTimer, With<Player>>,
+    mut commands: Commands,
+    mut encounter_query: Query<(&mut CombatTimer, &Transform), With<Player>>,
     mut state: ResMut<State<AppState>>,
 ) {
-    let mut encounter_timer = encounter_query
+    let (mut encounter_timer, player_transform) = encounter_query
         .get_single_mut()
         .expect("No encounter timer found 'Player plugin' 163");
     if encounter_timer.is_done() {
         encounter_timer.reset();
+        commands.insert_resource(FadeoutConfigResource {
+            fadeout_duration: 0.5,
+            next_state: AppState::Combat,
+            position: player_transform.translation,
+        });
         state
-            .push(AppState::Combat)
-            .expect("Error pushing state to App::Combat 'Player plugin' 170");
+            .push(AppState::Fadeout)
+            .expect("Error pushing state to App::Fadeout 'Player plugin' 184");
     }
 }
 
