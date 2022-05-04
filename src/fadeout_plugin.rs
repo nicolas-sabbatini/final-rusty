@@ -5,7 +5,6 @@ use crate::{AppState, WIN_HEIGHT, WIN_WIDTH};
 // Plugin struct definitions
 #[derive(Debug, Component)]
 struct FadeoutStatus {
-    sent: bool,
     next_state: AppState,
     timer: Timer,
 }
@@ -38,7 +37,6 @@ fn create_fadeout(mut commands: Commands, fadeout_config: ResMut<FadeoutConfigRe
     commands.spawn_bundle(FadeoutBundle {
         tag: Name::new("Fadeout"),
         status: FadeoutStatus {
-            sent: false,
             next_state: fadeout_config.next_state,
             timer: Timer::from_seconds(fadeout_config.fadeout_duration, false),
         },
@@ -67,11 +65,10 @@ fn update_fadeout(
 ) {
     for (entity, mut status, mut sprite) in fadeout_query.iter_mut() {
         status.timer.tick(time.delta());
-        sprite.color.set_a(status.timer.percent());
-
+        sprite.color.set_a(status.timer.percent() + 0.3);
         if status.timer.finished() {
             commands.entity(entity).despawn_recursive();
-            state.push(status.next_state).unwrap();
+            state.set(status.next_state).unwrap();
         }
     }
 }

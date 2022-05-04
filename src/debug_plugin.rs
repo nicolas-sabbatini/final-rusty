@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{RegisterInspectable, WorldInspectorPlugin};
 
 use crate::combat_plugin::Enemy;
+use crate::common_component::CombatStats;
 use crate::player_plugin::{CombatTimer, Player};
 
 pub struct DebugPlugin;
@@ -13,6 +14,7 @@ impl Plugin for DebugPlugin {
             .add_plugin(FrameTimeDiagnosticsPlugin::default())
             .register_inspectable::<Player>()
             .register_inspectable::<CombatTimer>()
+            .register_inspectable::<CombatStats>()
             .register_inspectable::<Enemy>();
     }
 }

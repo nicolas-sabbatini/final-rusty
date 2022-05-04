@@ -1,5 +1,5 @@
 use crate::{
-    common_component::{Collider, EncounterSpawn, Speed},
+    common_component::{Collider, CombatStats, EncounterSpawn, Speed},
     fadeout_plugin::FadeoutConfigResource,
     AppState, SpriteSheet, TILE_SIZE,
 };
@@ -45,6 +45,7 @@ struct PlayerBundle {
     tag: Player,
     speed: Speed,
     until_combat: CombatTimer,
+    combat_stats: CombatStats,
     #[bundle]
     sprite: SpriteSheetBundle,
 }
@@ -72,6 +73,12 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         name: Name::new("Player"),
         speed: Speed(32.0),
         until_combat: CombatTimer::new(20.0, 50.0),
+        combat_stats: CombatStats {
+            hp: 10,
+            max_hp: 10,
+            attack: 2,
+            defense: 1,
+        },
         sprite: SpriteSheetBundle {
             sprite: TextureAtlasSprite::new(8),
             texture_atlas: sprite_sheet.0.clone(),
@@ -175,7 +182,7 @@ fn check_encunter(
     if encounter_timer.is_done() {
         encounter_timer.reset();
         commands.insert_resource(FadeoutConfigResource {
-            fadeout_duration: 0.5,
+            fadeout_duration: 0.75,
             next_state: AppState::Combat,
             position: player_transform.translation,
         });
