@@ -183,7 +183,7 @@ fn check_encunter(
         encounter_timer.reset();
         commands.insert_resource(FadeoutConfigResource {
             fadeout_duration: 0.75,
-            next_state: AppState::Combat,
+            next_state: Some(AppState::Combat),
             position: player_transform.translation,
         });
         state

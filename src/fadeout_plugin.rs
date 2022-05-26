@@ -5,7 +5,7 @@ use crate::{AppState, WIN_HEIGHT, WIN_WIDTH};
 // Plugin struct definitions
 #[derive(Debug, Component)]
 struct FadeoutStatus {
-    next_state: AppState,
+    next_state: Option<AppState>,
     timer: Timer,
 }
 
@@ -20,7 +20,7 @@ struct FadeoutBundle {
 #[derive(Debug, Clone, Copy)]
 pub struct FadeoutConfigResource {
     pub fadeout_duration: f32,
-    pub next_state: AppState,
+    pub next_state: Option<AppState>,
     pub position: Vec3,
 }
 
@@ -68,7 +68,10 @@ fn update_fadeout(
         sprite.color.set_a(status.timer.percent() + 0.3);
         if status.timer.finished() {
             commands.entity(entity).despawn_recursive();
-            state.set(status.next_state).unwrap();
+            match status.next_state {
+                Some(s) => state.set(s).unwrap(),
+                None => state.pop().unwrap(),
+            }
         }
     }
 }
